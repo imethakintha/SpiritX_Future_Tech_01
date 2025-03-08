@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Signup() {
+function Login() {
   const [form, setForm] = useState({
     username: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (form.username && form.username.length < 8) {
-      setErrors(prev => ({ ...prev, username: 'Username must be at least 8 characters long' }));
+    if (!form.username) {
+      setErrors(prev => ({ ...prev, username: 'Username is required' }));
     } else {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -25,36 +23,16 @@ function Signup() {
   }, [form.username]);
 
   useEffect(() => {
-    if (form.password) {
-      let strength = 0;
-      if (form.password.length >= 8) strength += 1;
-      if (/[a-z]/.test(form.password)) strength += 1;
-      if (/[A-Z]/.test(form.password)) strength += 1;
-      if (/[0-9]/.test(form.password)) strength += 1;
-      if (/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) strength += 1;
-      
-      if (strength <= 2) {
-        setPasswordStrength('Weak');
-      } else if (strength === 3 || strength === 4) {
-        setPasswordStrength('Medium');
-      } else {
-        setPasswordStrength('Strong');
-      }
-    } else {
-      setPasswordStrength('');
-    }
-  }, [form.password]);
-  useEffect(() => {
-    if (form.confirmPassword && form.password !== form.confirmPassword) {
-      setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+    if (!form.password) {
+      setErrors(prev => ({ ...prev, password: 'Password is required' }));
     } else {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors.confirmPassword;
+        delete newErrors.password;
         return newErrors;
       });
     }
-  }, [form.password, form.confirmPassword]);
+  }, [form.password]);
 
   const handleChange = (e) => {
     setForm({
@@ -67,7 +45,6 @@ function Signup() {
     const newErrors = {};
     if (!form.username) newErrors.username = 'Username is required';
     if (!form.password) newErrors.password = 'Password is required';
-    if (!form.confirmPassword) newErrors.confirmPassword = 'Confirm Password is required';
     return newErrors;
   };
 
@@ -80,7 +57,7 @@ function Signup() {
     }
     setGeneralError('');
     try {
-      const response = await fetch('http://localhost:5000/api/signup', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -90,12 +67,9 @@ function Signup() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setGeneralError(data.message || 'Signup failed');
+        setGeneralError(data.message || 'Login failed');
       } else {
-        alert(data.message);
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        navigate('/landing', { state: { username: data.username } });
       }
     } catch (error) {
       setGeneralError('Server error. Please try again later.');
@@ -103,8 +77,8 @@ function Signup() {
   };
 
   return (
-    <div className="signup-container">
-      <h2>Signup</h2>
+    <div className="login-container">
+      <h2>Login</h2>
       {generalError && <div className="general-error">{generalError}</div>}
       <form onSubmit={handleSubmit}>
         <div>
@@ -126,22 +100,11 @@ function Signup() {
             onChange={handleChange}
           />
           {errors.password && <div className="error">{errors.password}</div>}
-          {passwordStrength && <div>Password Strength: {passwordStrength}</div>}
         </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input 
-            type="password" 
-            name="confirmPassword" 
-            value={form.confirmPassword} 
-            onChange={handleChange}
-          />
-          {errors.confirmPassword && <div className="error">{errors.confirmPassword}</div>}
-        </div>
-        <button type="submit">Sign Up</button>
+        <button type="submit">Login</button>
       </form>
     </div>
   );
 }
 
-export default Signup;
+export default Login;
