@@ -31,7 +31,6 @@ function Landing() {
         method: 'GET',
         credentials: 'include'
       });
-      const data = await response.json();
       if (response.ok) {
         navigate('/login');
       }
@@ -39,6 +38,7 @@ function Landing() {
       console.error('Logout error', error);
     }
   };
+  
 
   return (
     <div className="landing-container">
